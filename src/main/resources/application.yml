@@ -1,0 +1,21 @@
+spring:
+  h2:
+    console.enabled: true
+  datasource:
+    url: jdbc:h2:file:~/assets
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      dialect: org.hibernate.dialect.H2Dialect
+      ddl-auto: update
+coinbase:
+  endpoints:
+    products: https://api.exchange.coinbase.com/products
+    productTicker: https://api.exchange.coinbase.com/products/%s/ticker
+binance:
+  endpoints:
+    exchangeInfo: https://api.binance.com/api/v3/exchangeInfo
+    tickerPrice: https://api.binance.com/api/v3/ticker/price
