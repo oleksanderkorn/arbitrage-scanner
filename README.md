@@ -1,5 +1,7 @@
 # Arbitrage Scanner
 
+![Coverage](.github/badges/jacoco.svg)
+
 Arbitrage Scanner App between Binance and Coinbase Pro exchanges.
 Uses Scheduler to perform two tasks:
 - Every hour, fetch all trading pairs with USD(T) as a quote currency which exists in both binance and coinbase pro,
