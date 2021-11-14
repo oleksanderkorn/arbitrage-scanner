@@ -7,7 +7,7 @@ Uses Scheduler to perform two tasks:
 - Every hour, fetch all trading pairs with USD(T) as a quote currency which exists in both binance and coinbase pro,
 and save to the H2 db if it's not exist in the db
 - Every 30 seconds, for all known pairs from the db get last price using ticker endpoints, calculate base points(bips), 
-and notify if the difference is more than 50 points  
+and publish event if the difference is more than 50 points
 
 ## Endpoints used:
 
@@ -19,4 +19,4 @@ and notify if the difference is more than 50 points
 ### Coinbase Pro
 
 - https://api.exchange.coinbase.com/products
-- https://api.exchange.coinbase.com/products/%s/ticker
+- https://api.exchange.coinbase.com/products/{pair}/ticker
