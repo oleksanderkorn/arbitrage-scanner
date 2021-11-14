@@ -44,8 +44,8 @@ public class ExchangeService {
     }
 
     public void compareTradingPairs() {
-        tradingPairService.findAll().forEach(asset -> apiService.getCoinbaseTicker(asset).ifPresent(coinbaseTicker ->
-                apiService.getBinanceTicker(asset).ifPresent(binanceTicker -> {
+        tradingPairService.findAll().forEach(asset -> apiService.getCoinbaseTicker(asset.getName()).ifPresent(coinbaseTicker ->
+                apiService.getBinanceTicker(asset.getName()).ifPresent(binanceTicker -> {
                     BigDecimal binancePrice = binanceTicker.price();
                     BigDecimal coinbasePrice = coinbaseTicker.price();
                     BigDecimal binanceBips = toBasePoints(binancePrice);

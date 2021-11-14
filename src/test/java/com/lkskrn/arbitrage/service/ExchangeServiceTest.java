@@ -3,44 +3,68 @@ package com.lkskrn.arbitrage.service;
 import com.lkskrn.arbitrage.dto.BinanceSymbol;
 import com.lkskrn.arbitrage.dto.BinanceSymbols;
 import com.lkskrn.arbitrage.dto.CoinbaseProduct;
+import com.lkskrn.arbitrage.dto.ProductTicker;
+import com.lkskrn.arbitrage.events.BasePointsEvent;
+import com.lkskrn.arbitrage.model.TradingAsset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@RecordApplicationEvents
+
 @RunWith(SpringRunner.class)
 public class ExchangeServiceTest {
 
-    @Autowired
-    private TradingAssetService tradingAssetService;
-
-    @Autowired
-    private BasePointsEventPublisher notificationService;
-
-    private final APIService apiService = Mockito.mock(APIService.class);
-    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService, notificationService);
+    private final BasePointsEventPublisher basePointsPublisher = mock(BasePointsEventPublisher.class);
+    private final APIService apiService = mock(APIService.class);
+    private final TradingAssetService tradingAssetService = mock(TradingAssetService.class);
+    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService, basePointsPublisher);
+    private final LinkedBlockingQueue<BasePointsEvent> events = new LinkedBlockingQueue<>();
 
     @BeforeEach
     public void setup() {
-        Mockito.when(apiService.getBinanceExchangeInfo()).thenReturn(Optional.of(testBinanceSymbols()));
-        Mockito.when(apiService.getCoinbaseProducts()).thenReturn(Optional.of(testCoinbaseProducts()));
-
+        when(apiService.getBinanceExchangeInfo()).thenReturn(Optional.of(testBinanceSymbols()));
+        when(apiService.getCoinbaseProducts()).thenReturn(Optional.of(testCoinbaseProducts()));
+        when(tradingAssetService.findAll()).thenReturn(testTradingAssets());
+        when(apiService.getBinanceTicker("BTC")).thenReturn(tickerOf(65000D));
+        when(apiService.getCoinbaseTicker("BTC")).thenReturn(tickerOf(65001D));
+        when(apiService.getBinanceTicker("ETH")).thenReturn(tickerOf(4777D));
+        when(apiService.getCoinbaseTicker("ETH")).thenReturn(tickerOf(4776D));
+        when(apiService.getBinanceTicker("SHIB")).thenReturn(tickerOf(0.000052));
+        when(apiService.getCoinbaseTicker("SHIB")).thenReturn(tickerOf(0.000059));
     }
 
     @Test
-    public void shouldCalculateBase4PointsFromAssetPrice() {
+    public void shouldSendEventWhenBasePointsDifferenceIsHigherThanThreshold() {
+        doAnswer(invocation -> {
+            BasePointsEvent event = invocation.getArgument(0);
+            events.add(event);
+            return null;
+        }).when(basePointsPublisher).notifyBasePointsDifference(any(BasePointsEvent.class));
+        exchangeService.compareTradingPairs();
+        assertEquals(2, events.size());
+        assertTrue(events.stream().anyMatch(e -> e.getSource().toString().contains("BTC")));
+        assertTrue(events.stream().anyMatch(e -> e.getSource().toString().contains("ETH")));
+        assertFalse(events.stream().anyMatch(e -> e.getSource().toString().contains("SHIB")));
+    }
+
+    @Test
+    public void shouldCalculateBasePointsFromAssetPrice() {
         assertEquals("100000", exchangeService.toBasePoints(new BigDecimal("10.0")).toPlainString());
         assertEquals("53245", exchangeService.toBasePoints(new BigDecimal("5.3245")).toPlainString());
         assertEquals("1", exchangeService.toBasePoints(new BigDecimal("0.0001")).toPlainString());
@@ -49,9 +73,7 @@ public class ExchangeServiceTest {
     @Test
     public void shouldFindIntersectionBetweenBinanceAndCoinbasePairs() {
         List<BinanceSymbol> binanceSymbols = testSymbols();
-
         List<CoinbaseProduct> coinbaseProducts = Arrays.stream(testCoinbaseProducts()).toList();
-
         List<String> assets = exchangeService.findAssetsIntersection(coinbaseProducts, binanceSymbols).collect(Collectors.toList());
         assertEquals(2, assets.size());
         assertTrue(assets.contains("BTC"));
@@ -101,6 +123,22 @@ public class ExchangeServiceTest {
 
     private CoinbaseProduct productOf(String base, String quote) {
         return new CoinbaseProduct(base.concat(quote), base, quote, "");
+    }
+
+    private List<TradingAsset> testTradingAssets() {
+        return List.of(
+                assetOf("BTC"),
+                assetOf("ETH"),
+                assetOf("SHIB")
+        );
+    }
+
+    private TradingAsset assetOf(String btc) {
+        return new TradingAsset(btc);
+    }
+
+    private Optional<ProductTicker> tickerOf(Double lastPrice) {
+        return Optional.of(new ProductTicker(BigDecimal.valueOf(lastPrice)));
     }
 
 }

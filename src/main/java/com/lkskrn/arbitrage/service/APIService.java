@@ -53,9 +53,9 @@ public class APIService {
         }
     }
 
-    public Optional<ProductTicker> getCoinbaseTicker(TradingAsset asset) {
+    public Optional<ProductTicker> getCoinbaseTicker(String asset) {
         try {
-            String endpoint = coinbaseProductTicker.formatted(asset.getName().concat("-").concat(USD));
+            String endpoint = coinbaseProductTicker.formatted(asset.concat("-").concat(USD));
             return Optional.ofNullable(restTemplate.getForObject(endpoint, ProductTicker.class));
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
@@ -63,9 +63,9 @@ public class APIService {
         }
     }
 
-    public Optional<ProductTicker> getBinanceTicker(TradingAsset asset) {
+    public Optional<ProductTicker> getBinanceTicker(String asset) {
         try {
-            String endpoint = binanceTickerPrice.concat("?symbol=").concat(asset.getName()).concat(USDT);
+            String endpoint = binanceTickerPrice.concat("?symbol=").concat(asset).concat(USDT);
             return Optional.ofNullable(restTemplate.getForObject(endpoint, ProductTicker.class));
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
