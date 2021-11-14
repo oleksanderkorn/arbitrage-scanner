@@ -24,6 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 //        "status_message": "",
 //        "auction_mode": false
 //}
-public record Product(String id, @JsonProperty("base_currency") String baseCurrency,
-                      @JsonProperty("quote_currency") String quoteCurrency, String status) {
+public record CoinbaseProduct(String id, @JsonProperty("base_currency") String baseCurrency,
+                              @JsonProperty("quote_currency") String quoteCurrency, String status) {
 }
