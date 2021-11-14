@@ -3,6 +3,7 @@ package com.lkskrn.arbitrage.service;
 import com.lkskrn.arbitrage.dto.BinanceSymbol;
 import com.lkskrn.arbitrage.dto.CoinbaseProduct;
 import com.lkskrn.arbitrage.dto.Exchange;
+import com.lkskrn.arbitrage.events.BasePointsEvent;
 import com.lkskrn.arbitrage.model.TradingAsset;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,13 @@ public class ExchangeService {
 
     private final TradingAssetService tradingPairService;
     private final APIService apiService;
+    private final BasePointsEventPublisher notificationService;
 
     @Autowired
-    public ExchangeService(TradingAssetService tradingPairService, APIService apiService) {
+    public ExchangeService(TradingAssetService tradingPairService, APIService apiService, BasePointsEventPublisher notificationService) {
         this.tradingPairService = tradingPairService;
         this.apiService = apiService;
+        this.notificationService = notificationService;
     }
 
     public void fetchSupportedAssets() {
@@ -49,7 +52,7 @@ public class ExchangeService {
                     BigDecimal coinbaseBips = toBasePoints(coinbasePrice);
                     BigDecimal delta = coinbaseBips.subtract(binanceBips).abs();
                     if (delta.compareTo(BIPS_TRESHOLD) >= 0) {
-                        log.info("%s [%s] | Exchange: [%s] Price: [%s] Bips [%s]| Exchange: [%s] Price: [%s] Bips [%s]".formatted(
+                        String message = "%s [%s] | Exchange: [%s] Price: [%s] Bips [%s]| Exchange: [%s] Price: [%s] Bips [%s]".formatted(
                                 asset.getName(),
                                 delta.toBigInteger(),
                                 Exchange.BINANCE.name(),
@@ -57,8 +60,9 @@ public class ExchangeService {
                                 binanceBips.toPlainString(),
                                 Exchange.COINBASE.name(),
                                 coinbasePrice.toPlainString(),
-                                coinbaseBips.toPlainString())
+                                coinbaseBips.toPlainString()
                         );
+                        notificationService.notifyBasePointsDifference(new BasePointsEvent(message));
                     }
                     rateLimitDelay();
                 })));

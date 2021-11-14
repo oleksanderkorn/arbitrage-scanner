@@ -26,8 +26,11 @@ public class ExchangeServiceTest {
     @Autowired
     private TradingAssetService tradingAssetService;
 
+    @Autowired
+    private BasePointsEventPublisher notificationService;
+
     private final APIService apiService = Mockito.mock(APIService.class);
-    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService);
+    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService, notificationService);
 
     @BeforeEach
     public void setup() {
