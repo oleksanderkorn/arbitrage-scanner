@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
@@ -25,8 +24,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@RecordApplicationEvents
-
 @RunWith(SpringRunner.class)
 public class ExchangeServiceTest {
 
@@ -50,7 +47,7 @@ public class ExchangeServiceTest {
     }
 
     @Test
-    public void shouldSendEventWhenBasePointsDifferenceIsHigherThanThreshold() {
+    public void shouldPublishEventWhenBasePointsDifferenceIsHigherThanThreshold() {
         doAnswer(invocation -> {
             BasePointsEvent event = invocation.getArgument(0);
             events.add(event);
