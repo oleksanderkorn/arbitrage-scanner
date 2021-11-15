@@ -1,9 +1,6 @@
 package com.lkskrn.arbitrage.service;
 
-import com.lkskrn.arbitrage.dto.BinanceSymbol;
-import com.lkskrn.arbitrage.dto.BinanceSymbols;
-import com.lkskrn.arbitrage.dto.CoinbaseProduct;
-import com.lkskrn.arbitrage.dto.ProductTicker;
+import com.lkskrn.arbitrage.dto.*;
 import com.lkskrn.arbitrage.events.BasePointsEvent;
 import com.lkskrn.arbitrage.model.TradingAsset;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
@@ -30,7 +28,8 @@ public class ExchangeServiceTest {
     private final BasePointsEventPublisher basePointsPublisher = mock(BasePointsEventPublisher.class);
     private final APIService apiService = mock(APIService.class);
     private final TradingAssetService tradingAssetService = mock(TradingAssetService.class);
-    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService, basePointsPublisher);
+    private final ExchangeService exchangeService = new ExchangeService(tradingAssetService, apiService,
+            basePointsPublisher);
     private final LinkedBlockingQueue<BasePointsEvent> events = new LinkedBlockingQueue<>();
 
     @BeforeEach
@@ -55,9 +54,9 @@ public class ExchangeServiceTest {
         }).when(basePointsPublisher).notifyBasePointsDifference(any(BasePointsEvent.class));
         exchangeService.compareTradingPairs();
         assertEquals(2, events.size());
-        assertTrue(events.stream().anyMatch(e -> e.getSource().toString().contains("BTC")));
-        assertTrue(events.stream().anyMatch(e -> e.getSource().toString().contains("ETH")));
-        assertFalse(events.stream().anyMatch(e -> e.getSource().toString().contains("SHIB")));
+        assertTrue(events.stream().anyMatch(e -> Objects.equals(((BasePointsEventData) e.getSource()).id(), "BTC")));
+        assertTrue(events.stream().anyMatch(e -> Objects.equals(((BasePointsEventData) e.getSource()).id(), "ETH")));
+        assertFalse(events.stream().anyMatch(e -> Objects.equals(((BasePointsEventData) e.getSource()).id(), "SHIB")));
     }
 
     @Test
@@ -71,7 +70,8 @@ public class ExchangeServiceTest {
     public void shouldFindIntersectionBetweenBinanceAndCoinbasePairs() {
         List<BinanceSymbol> binanceSymbols = testSymbols();
         List<CoinbaseProduct> coinbaseProducts = Arrays.stream(testCoinbaseProducts()).toList();
-        List<String> assets = exchangeService.findAssetsIntersection(coinbaseProducts, binanceSymbols).collect(Collectors.toList());
+        List<String> assets = exchangeService.findAssetsIntersection(coinbaseProducts, binanceSymbols)
+                .collect(Collectors.toList());
         assertEquals(2, assets.size());
         assertTrue(assets.contains("BTC"));
         assertTrue(assets.contains("ETH"));
@@ -99,19 +99,11 @@ public class ExchangeServiceTest {
     }
 
     private List<BinanceSymbol> testSymbols() {
-        return List.of(
-                symbolOf("BTC", "USDT"),
-                symbolOf("ETH", "USDT"),
-                symbolOf("BTC", "ETH")
-        );
+        return List.of(symbolOf("BTC", "USDT"), symbolOf("ETH", "USDT"), symbolOf("BTC", "ETH"));
     }
 
     private CoinbaseProduct[] testCoinbaseProducts() {
-        return new CoinbaseProduct[]{
-                productOf("BTC", "USD"),
-                productOf("ETH", "USD"),
-                productOf("SHIB", "BTC")
-        };
+        return new CoinbaseProduct[] { productOf("BTC", "USD"), productOf("ETH", "USD"), productOf("SHIB", "BTC") };
     }
 
     private BinanceSymbol symbolOf(String base, String quote) {
@@ -123,11 +115,7 @@ public class ExchangeServiceTest {
     }
 
     private List<TradingAsset> testTradingAssets() {
-        return List.of(
-                assetOf("BTC"),
-                assetOf("ETH"),
-                assetOf("SHIB")
-        );
+        return List.of(assetOf("BTC"), assetOf("ETH"), assetOf("SHIB"));
     }
 
     private TradingAsset assetOf(String btc) {
