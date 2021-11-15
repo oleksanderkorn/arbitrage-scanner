@@ -20,6 +20,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(websocketHandler, "/prices").setAllowedOrigins("http://localhost:3000");
+        webSocketHandlerRegistry.addHandler(websocketHandler, "/prices").setAllowedOrigins("https://arbitrage-ui.herokuapp.com/");
     }
 }
