@@ -50,3 +50,10 @@ jacocoTestReport {
 		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
 	}
 }
+
+jar {
+   enabled = false
+   manifest {
+      attributes('Main-Class': 'com.lkskrn.arbitrage.ArbitrageScannerApplication')
+   }
+}
