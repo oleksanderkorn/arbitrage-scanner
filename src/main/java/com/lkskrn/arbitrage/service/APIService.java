@@ -3,7 +3,6 @@ package com.lkskrn.arbitrage.service;
 import com.lkskrn.arbitrage.dto.BinanceSymbols;
 import com.lkskrn.arbitrage.dto.CoinbaseProduct;
 import com.lkskrn.arbitrage.dto.ProductTicker;
-import com.lkskrn.arbitrage.model.TradingAsset;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
