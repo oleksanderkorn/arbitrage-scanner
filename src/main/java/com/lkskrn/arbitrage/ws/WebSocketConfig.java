@@ -10,7 +10,6 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-
     private final WebsocketHandler websocketHandler;
 
     @Autowired
@@ -20,6 +19,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(websocketHandler, "/prices").setAllowedOrigins("https://arbitrage-ui.herokuapp.com/");
+        webSocketHandlerRegistry.addHandler(websocketHandler, "/prices").setAllowedOrigins(
+                "https://arbitrage-ui.herokuapp.com/", "https://oleksanderkorn.github.io/arbitrage-scanner-ui/");
     }
 }
